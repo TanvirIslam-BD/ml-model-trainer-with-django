@@ -67,16 +67,16 @@
 
     <script>
     async function fetchHistory() {
-        const response = await fetch('/ml/training_history');
+        const response = await fetch('/ml/training-history/');
         const history = await response.json();
+        const training_history = history.training_history
 
         // Sort history by timestamp in descending order
-        history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
+        
         const tableBody = document.getElementById("history-rows");
         tableBody.innerHTML = ""; // Clear existing rows
 
-        history.forEach((entry, index) => {
+        training_history.forEach((entry, index) => {
             const row = document.createElement("tr");
 
             // Add "Current" tag to the latest entry

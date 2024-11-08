@@ -36,7 +36,6 @@ CATEGORICAL_FEATURES: List[str] = [
     "Booking type",
     "Refund status",
     "Status",
-    "Status",
     "Currency"
 ]
 

@@ -15,7 +15,7 @@ from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, reca
 
 logger = logging.getLogger(__name__)
 
-MODEL_FILE_PATH = os.path.join(settings.BASE_DIR, 'ml_app', 'saved_models', 'hist_gradient_boosting_model.pkl')
+MODEL_FILE_PATH = os.path.join(settings.BASE_DIR, 'ml_app', 'saved_models', 'model.pkl')
 TRAINING_DATA_PATH = os.path.join(settings.BASE_DIR, 'ml_app', 'data', 'training_data.csv')
 
 
@@ -33,17 +33,17 @@ def train_model(data):
 
     save_training_data(performance_metrics, best_tune_params)
 
-    return model, *performance_metrics.values()
+    return performance_metrics
 
 
 
 def save_training_data(performance_metrics, best_tune_params):
     # Save the data to the TrainingHistory model
     training_history = TrainingHistory.objects.create(
-        learning_rate=best_tune_params["learning_rate"],
-        max_iter=best_tune_params["max_iter"],
-        max_leaf_nodes=best_tune_params["max_leaf_nodes"],
-        min_samples_leaf=best_tune_params["min_samples_leaf"],
+        learning_rate=best_tune_params["classifier__learning_rate"],
+        max_iter=best_tune_params["classifier__max_iter"],
+        max_leaf_nodes=best_tune_params["classifier__max_leaf_nodes"],
+        min_samples_leaf=best_tune_params["classifier__min_samples_leaf"],
         accuracy=performance_metrics["accuracy"],
         precision=performance_metrics["precision"],
         recall=performance_metrics["recall"],
@@ -127,8 +127,8 @@ def load_and_prepare_data(data: dict):
     # Preprocess feature from date column
     data_frame = extract_datetime_features(data)
 
-    feature_matrix_x = data_frame[CATEGORICAL_FEATURES + numeric_features]
-    target_vector_y = data[label_column]
+    feature_matrix_x = data_frame.drop(columns=[label_column])
+    target_vector_y = data_frame[label_column]
 
     return data, feature_matrix_x, target_vector_y
 
@@ -187,13 +187,22 @@ def load_last_trained_features():
 
 
 def extract_datetime_features(data_frame):
-    data_frame["Date & Time"] = pd.to_datetime(data_frame["Date & Time"])
-    data_frame["year"] = data_frame["Date & Time"].dt.year
-    data_frame["month"] = data_frame["Date & Time"].dt.month
-    data_frame["day"] = data_frame["Date & Time"].dt.day
-    data_frame["hour"] = data_frame["Date & Time"].dt.hour
-    data_frame["minute"] = data_frame["Date & Time"].dt.minute
-    return data_frame.drop(columns=["Date & Time"])
+    for feature in DATE_FEATURES:
+        if feature in data_frame.columns:
+            # Convert the column to datetime format
+            data_frame[feature] = pd.to_datetime(data_frame[feature], errors='coerce')
+
+            # Extract datetime components
+            data_frame[f"{feature}_year"] = data_frame[feature].dt.year
+            data_frame[f"{feature}_month"] = data_frame[feature].dt.month
+            data_frame[f"{feature}_day"] = data_frame[feature].dt.day
+            data_frame[f"{feature}_hour"] = data_frame[feature].dt.hour
+            data_frame[f"{feature}_minute"] = data_frame[feature].dt.minute
+
+            # Drop the original date column
+            data_frame = data_frame.drop(columns=[feature])
+
+    return data_frame
 
 # Load model if it exists
 def load_model():

@@ -2,22 +2,35 @@ import os
 
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+
 from .ml import predict, retrain, tuner
 import pandas as pd
 import io
 from django.http import JsonResponse
 
 from .ml.models import TrainedFeatures, TrainingHistory
+from .ml.predict import prediction
 from .ml.retrain import retrain_model
+import json
 
 
 def index(request):
     return render(request, 'index.html')
 
+@csrf_exempt
 def predict(request):
-    data = request.GET.dict()
-    result = predict.predict(data)
-    return JsonResponse({'prediction': result})
+    if request.method == "POST":
+        # Parse JSON data from the request body
+        data = json.loads(request.body)
+
+        # Convert the data to a DataFrame with a single row
+        data_df = pd.DataFrame([data])
+
+        result = prediction(data_df)  # Calls the function from `predict.py`
+        return JsonResponse({"prediction": result.tolist()})
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
 def retrain(request):
@@ -123,3 +136,7 @@ def training_history(request):
 
     # Return the data as JSON
     return JsonResponse({"training_history": history_data}, safe=False)
+
+
+def history(request):
+    return render(request, 'history.html')

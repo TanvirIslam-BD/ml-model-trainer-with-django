@@ -1,4 +1,4 @@
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split, RandomizedSearchCV
 
 from ml_app.ml.pipeline import create_pipeline
 
@@ -16,7 +16,7 @@ def model_train_with_auto_tune(X, y, categorical_features, numeric_features):
     }
 
     # Set up GridSearchCV with cross-validation
-    grid_search = GridSearchCV(
+    grid_search = RandomizedSearchCV(
         pipeline,
         param_grid,
         cv=5,
