@@ -1,8 +1,11 @@
 import os
 
+from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from .ml import predict, retrain, tuner
 import pandas as pd
@@ -17,21 +20,6 @@ import json
 
 def index(request):
     return render(request, 'index.html')
-
-@csrf_exempt
-def predict(request):
-    if request.method == "POST":
-        # Parse JSON data from the request body
-        data = json.loads(request.body)
-
-        # Convert the data to a DataFrame with a single row
-        data_df = pd.DataFrame([data])
-
-        result = prediction(data_df)  # Calls the function from `predict.py`
-        return JsonResponse({"prediction": result.tolist()})
-
-    return JsonResponse({"error": "Invalid request method"}, status=405)
-
 
 def retrain(request):
     if request.method == "POST":

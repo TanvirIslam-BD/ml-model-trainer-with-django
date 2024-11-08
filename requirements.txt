@@ -4,3 +4,4 @@ pandas==2.2.3
 joblib==1.4.2
 celery==5.4.0
 django-celery-beat==2.7.0
+rest_framework_simplejwt

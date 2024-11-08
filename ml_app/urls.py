@@ -4,7 +4,6 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),               # Accessible at /ml/
-    path('predict/', views.predict, name='predict'),   # Accessible at /ml/predict/
     path('retrain/', views.retrain, name='retrain'),   # Accessible at /ml/retrain/
     path('auto_tune/', views.auto_tune, name='auto_tune'),  # Accessible at /ml/auto_tune/
     path('data_set_info/', views.data_set_info, name='data_set_info'),  # Accessible at /ml/data_set_info/
